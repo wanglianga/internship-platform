@@ -24,6 +24,19 @@ const levelTextMap: Record<string, string> = {
   LOW: 'text-blue-700',
 };
 
+const riskTypeLabels: Record<string, string> = {
+  MAJOR_MISMATCH: '专业不匹配',
+  DUPLICATE_SIGNING: '重复签约',
+  JOB_WITHDRAWN: '企业撤岗',
+  STUDENT_BREACH: '学生违约',
+};
+
+const todoTypeLabels: Record<string, string> = {
+  APPLICATION: '投递申请',
+  DEPARTMENT: '院系审核',
+  AGREEMENT: '协议审核',
+};
+
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,7 +93,7 @@ export default function Dashboard() {
                     item.urgency === 'HIGH' ? 'bg-red-500' : item.urgency === 'MEDIUM' ? 'bg-orange-500' : 'bg-blue-500'
                   }`} />
                   <span className="text-sm text-slate-700 flex-1 truncate">{item.title}</span>
-                  <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{item.type}</span>
+                  <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{todoTypeLabels[item.type] || item.type}</span>
                   <ChevronRight size={14} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
                 </div>
               ))
@@ -111,7 +124,7 @@ export default function Dashboard() {
                     <span className={`text-xs font-semibold ${levelTextMap[risk.level] || 'text-slate-600'}`}>
                       {risk.level === 'HIGH' ? '高危' : risk.level === 'MEDIUM' ? '中危' : '低危'}
                     </span>
-                    <span className="text-xs text-slate-500">{risk.type}</span>
+                    <span className="text-xs text-slate-500">{riskTypeLabels[risk.type] || risk.type}</span>
                   </div>
                   <p className="text-sm text-slate-700 line-clamp-2">{risk.description}</p>
                 </div>

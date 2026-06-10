@@ -41,6 +41,7 @@ const riskLevelMap: Record<string, { label: string; color: string }> = {
   MEDIUM: { label: '中风险', color: 'bg-orange-100 text-orange-700' },
   LOW: { label: '低风险', color: 'bg-blue-100 text-blue-700' },
   ACTIVE: { label: '活跃', color: 'bg-red-100 text-red-600' },
+  PENDING: { label: '待处理', color: 'bg-yellow-100 text-yellow-700' },
   RESOLVED: { label: '已处理', color: 'bg-green-100 text-green-700' },
 };
 

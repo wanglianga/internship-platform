@@ -56,7 +56,11 @@ public class DashboardService {
                         .build())
                 .collect(Collectors.toList());
 
-        List<RiskAlert> activeRisks = riskAlertRepository.findByStatus("ACTIVE");
+        List<RiskAlert> activeRisks = riskAlertRepository.findAll().stream()
+                .filter(r -> !"RESOLVED".equals(r.getStatus()))
+                .sorted(Comparator.comparing(RiskAlert::getDetectedAt).reversed())
+                .limit(5)
+                .collect(Collectors.toList());
         List<DashboardDTO.RiskSummary> riskSummaries = activeRisks.stream()
                 .map(alert -> DashboardDTO.RiskSummary.builder()
                         .id(alert.getId())

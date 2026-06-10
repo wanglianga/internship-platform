@@ -24,6 +24,7 @@ const levelOptions = [
 const statusOptions = [
   { key: '', label: '全部状态' },
   { key: 'ACTIVE', label: '活跃' },
+  { key: 'PENDING', label: '待处理' },
   { key: 'RESOLVED', label: '已处理' },
 ];
 
@@ -150,7 +151,7 @@ export default function Risks() {
                       </div>
                     </div>
                   </div>
-                  {risk.status === 'ACTIVE' && (
+                  {risk.status !== 'RESOLVED' && (
                     <button onClick={() => { setSelectedRisk(risk); setShowResolve(true); }} className="px-3 py-1.5 bg-teal-700 text-white rounded-lg text-xs hover:bg-teal-800 transition-colors">
                       处理
                     </button>
