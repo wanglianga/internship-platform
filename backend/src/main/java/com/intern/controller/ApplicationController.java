@@ -1,5 +1,6 @@
 package com.intern.controller;
 
+import com.intern.dto.DuplicateSigningBlockDTO;
 import com.intern.entity.Application;
 import com.intern.service.ApplicationService;
 import com.intern.repository.StudentRepository;
@@ -70,6 +71,14 @@ public class ApplicationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/check-duplicate")
+    public ResponseEntity<DuplicateSigningBlockDTO> checkDuplicateSigning(
+            @RequestParam Long studentId,
+            @RequestParam Long jobId) {
+        DuplicateSigningBlockDTO result = applicationService.checkDuplicateSigning(studentId, jobId);
+        return ResponseEntity.ok(result);
+    }
+
     @PutMapping("/{id}/interview")
     public ResponseEntity<Application> interview(@PathVariable Long id, @RequestBody Map<String, String> body) {
         Application app = applicationService.interview(id,
@@ -79,10 +88,50 @@ public class ApplicationController {
     }
 
     @PutMapping("/{id}/hire")
-    public ResponseEntity<Application> hire(@PathVariable Long id) {
-        Application app = applicationService.hire(id);
-        enrichApplication(app);
-        return ResponseEntity.ok(app);
+    public ResponseEntity<?> hire(@PathVariable Long id) {
+        try {
+            Application app = applicationService.hire(id);
+            enrichApplication(app);
+            return ResponseEntity.ok(app);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().startsWith("DUPLICATE_SIGNING_BLOCKED")) {
+                Application app = applicationService.findById(id).orElse(null);
+                if (app != null) {
+                    DuplicateSigningBlockDTO block = applicationService.checkDuplicateSigning(app.getStudentId(), app.getJobId());
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body(block);
+                }
+            }
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/hire-with-renounce")
+    public ResponseEntity<?> hireWithRenounce(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+        try {
+            Long renounceApplicationId = body.get("renounceApplicationId") != null
+                    ? Long.valueOf(body.get("renounceApplicationId").toString())
+                    : null;
+            String renounceReason = (String) body.get("renounceReason");
+            Application app = applicationService.hireWithRenounce(id, renounceApplicationId, renounceReason);
+            enrichApplication(app);
+            return ResponseEntity.ok(app);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/renounce")
+    public ResponseEntity<?> renounce(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        try {
+            String renounceReason = body.get("renounceReason");
+            Application app = applicationService.renounce(id, renounceReason);
+            enrichApplication(app);
+            return ResponseEntity.ok(app);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}/reject")

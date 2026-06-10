@@ -138,3 +138,60 @@ wl-287/
 - 企业撤岗时所有待处理投递自动终止，已有协议标记待变更
 - 学生违约时协议状态变更为已违约，学生标记违约记录影响后续投递
 - 就业办盖章后协议生效，学生完成实习报到后流程闭环
+
+## 培养方案匹配功能说明
+
+学生被企业录用后，系统自动触发培养方案匹配检查，根据以下维度判断能否纳入院系认可：
+
+1. **专业匹配**：学生专业是否符合岗位专业要求
+2. **岗位职责匹配**：岗位职责是否覆盖培养方案要求的关键词
+3. **学分要求**：学生已修课程学分是否达到培养方案要求
+4. **实习时长**：实习时长是否符合培养方案规定
+
+匹配结果状态：
+- `MATCHED`：全部维度匹配通过，自动进入院系审核
+- `UNMATCHED`：存在不匹配项，辅导员可进行以下操作：
+  - `REQUEST_TRANSFER`：要求学生换岗
+  - `APPROVE_WITH_NOTE`：结合补充说明批准
+
+## 企业撤岗处理功能说明
+
+企业因项目取消等原因撤回岗位时，系统执行以下操作：
+
+1. **岗位状态变更**：岗位状态标记为 `WITHDRAWN`
+2. **受影响学生标记**：所有相关投递记录状态变更为 `JOB_WITHDRAWN`，保留原投递记录
+3. **面试进度标记**：记录撤岗时学生所处的面试阶段
+4. **已签协议处理**：已签署的三方协议状态变更为 `JOB_WITHDRAWN`，记录撤岗原因
+5. **风险预警**：自动创建高优先级风险预警，通知就业办处理
+6. **批量推荐**：就业办可选择相近岗位，批量推荐给受影响学生
+7. **撤岗说明**：学生可查看企业撤岗原因和说明
+
+## API 文档（新增接口）
+
+### 培养方案相关接口
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/training-programs` | 获取所有培养方案 |
+| POST | `/api/training-programs` | 创建培养方案 |
+| GET | `/api/training-programs/{id}` | 获取培养方案详情 |
+| PUT | `/api/training-programs/{id}` | 更新培养方案 |
+| GET | `/api/training-programs/matches` | 获取所有培养方案匹配记录 |
+| GET | `/api/training-programs/matches/{id}` | 获取匹配记录详情 |
+| POST | `/api/training-programs/matches/check/{applicationId}` | 对指定申请执行培养方案匹配检查 |
+| PUT | `/api/training-programs/matches/{matchId}/counselor-action` | 辅导员对不匹配记录进行处理（换岗/补充说明） |
+| GET | `/api/training-programs/similar-jobs/{jobId}` | 获取相近岗位列表 |
+
+### 企业撤岗相关接口
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/job-withdrawals` | 获取所有撤岗记录 |
+| POST | `/api/job-withdrawals` | 执行企业撤岗操作 |
+| GET | `/api/job-withdrawals/{id}` | 获取撤岗记录详情 |
+| GET | `/api/job-withdrawals/job/{jobId}` | 根据岗位ID获取撤岗记录 |
+| GET | `/api/job-withdrawals/{jobId}/affected-applications` | 获取受撤岗影响的投递记录 |
+| GET | `/api/job-withdrawals/{jobId}/affected-agreements` | 获取受撤岗影响的三方协议 |
+| PUT | `/api/job-withdrawals/{withdrawalId}/process` | 就业办处理撤岗记录 |
+| POST | `/api/job-withdrawals/{jobId}/batch-recommend` | 批量推荐相近岗位给受影响学生 |
+| GET | `/api/job-withdrawals/{jobId}/explanation/{studentId}` | 获取学生可见的撤岗说明 |

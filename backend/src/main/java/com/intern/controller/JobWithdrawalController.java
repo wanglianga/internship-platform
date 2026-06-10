@@ -130,9 +130,13 @@ public class JobWithdrawalController {
     private void enrichAgreement(Agreement agreement) {
         applicationRepository.findById(agreement.getApplicationId()).ifPresent(app -> {
             studentRepository.findById(app.getStudentId()).ifPresent(s -> agreement.setStudentName(s.getName()));
-            jobRepository.findById(app.getJobId()).ifPresent(j -> agreement.setJobTitle(j.getTitle()));
-            enterpriseRepository.findById(j -> j.getEnterpriseId() != null ? j.getEnterpriseId() : null)
-                    .ifPresent(e -> agreement.setEnterpriseName(e.getName()));
+            jobRepository.findById(app.getJobId()).ifPresent(j -> {
+                agreement.setJobTitle(j.getTitle());
+                if (j.getEnterpriseId() != null) {
+                    enterpriseRepository.findById(j.getEnterpriseId())
+                            .ifPresent(e -> agreement.setEnterpriseName(e.getName()));
+                }
+            });
         });
     }
 }

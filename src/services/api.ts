@@ -1,5 +1,18 @@
 import axios from 'axios';
-import type { DashboardData, Job, Application, Agreement, Review, RiskAlert, Student, Enterprise, Counselor } from '../types';
+import type {
+  DashboardData,
+  Job,
+  Application,
+  Agreement,
+  Review,
+  RiskAlert,
+  Student,
+  Enterprise,
+  Counselor,
+  DuplicateSigningBlockDTO,
+  AgreementChangeRequest,
+  AgreementVersion,
+} from '../types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -29,7 +42,15 @@ export const getApplication = (id: number) => api.get<Application>(`/application
 export const interviewApplication = (id: number, data: { interviewTime: string; interviewLocation: string; interviewMethod: string }) =>
   api.put<Application>(`/applications/${id}/interview`, data).then((r) => r.data);
 export const hireApplication = (id: number) => api.put<Application>(`/applications/${id}/hire`).then((r) => r.data);
+export const hireApplicationWithRenounce = (
+  id: number,
+  data: { renounceApplicationId?: number; renounceReason: string },
+) => api.put<Application>(`/applications/${id}/hire-with-renounce`, data).then((r) => r.data);
 export const rejectApplication = (id: number) => api.put<Application>(`/applications/${id}/reject`).then((r) => r.data);
+export const renounceApplication = (id: number, data: { renounceReason: string }) =>
+  api.put<Application>(`/applications/${id}/renounce`, data).then((r) => r.data);
+export const checkDuplicateSigning = (studentId: number, jobId: number) =>
+  api.get<DuplicateSigningBlockDTO>('/applications/check-duplicate', { params: { studentId, jobId } }).then((r) => r.data);
 
 export const getAgreements = (params?: Record<string, string>) => api.get<Agreement[]>('/agreements', { params }).then((r) => r.data);
 export const createAgreement = (data: Partial<Agreement>) => api.post<Agreement>('/agreements', data).then((r) => r.data);
@@ -41,6 +62,29 @@ export const breachAgreement = (id: number, data: { breachReason: string; breach
   api.put<Agreement>(`/agreements/${id}/breach`, { reason: data.breachReason, party: data.breachParty }).then((r) => r.data);
 export const activateAgreement = (id: number) => api.put<Agreement>(`/agreements/${id}/activate`).then((r) => r.data);
 export const completeAgreement = (id: number) => api.put<Agreement>(`/agreements/${id}/complete`).then((r) => r.data);
+
+export const getChangeRequests = (params?: Record<string, string>) =>
+  api.get<AgreementChangeRequest[]>('/agreement-changes', { params }).then((r) => r.data);
+export const getChangeRequest = (id: number) => api.get<AgreementChangeRequest>(`/agreement-changes/${id}`).then((r) => r.data);
+export const createChangeRequest = (data: {
+  agreementId: number;
+  initiatedBy: number;
+  changeReason: string;
+  newLocation?: string;
+  newSalaryRange?: string;
+  newMentorName?: string;
+  newReportTime?: string;
+}) => api.post<AgreementChangeRequest>('/agreement-changes', data).then((r) => r.data);
+export const confirmChangeRequest = (
+  id: number,
+  data: { role: string; comment?: string; counselorId?: number },
+) => api.put<AgreementChangeRequest>(`/agreement-changes/${id}/confirm`, data).then((r) => r.data);
+export const rejectChangeRequest = (
+  id: number,
+  data: { role: string; rejectionReason: string },
+) => api.put<AgreementChangeRequest>(`/agreement-changes/${id}/reject`, data).then((r) => r.data);
+export const getAgreementVersions = (agreementId: number) =>
+  api.get<AgreementVersion[]>(`/agreement-changes/versions/${agreementId}`).then((r) => r.data);
 
 export const getReviews = (params?: Record<string, string>) => api.get<Review[]>('/reviews', { params }).then((r) => r.data);
 export const approveReview = (id: number, data: { comment: string }) => api.put<Review>(`/reviews/${id}/approve`, data).then((r) => r.data);

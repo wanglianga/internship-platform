@@ -37,11 +37,22 @@ export interface Job {
   enterpriseName?: string;
 }
 
+export type ApplicationStatus =
+  | 'APPLIED'
+  | 'INTERVIEWING'
+  | 'HIRED'
+  | 'REJECTED'
+  | 'DEPARTMENT_REVIEW'
+  | 'AGREEMENT_PENDING'
+  | 'ACTIVE'
+  | 'COMPLETED'
+  | 'RENOUNCED';
+
 export interface Application {
   id: number;
   studentId: number;
   jobId: number;
-  status: 'APPLIED' | 'INTERVIEWING' | 'HIRED' | 'REJECTED' | 'DEPARTMENT_REVIEW' | 'AGREEMENT_PENDING' | 'ACTIVE' | 'COMPLETED';
+  status: ApplicationStatus;
   interviewTime: string;
   interviewLocation: string;
   interviewMethod: string;
@@ -52,12 +63,23 @@ export interface Application {
   jobTitle?: string;
   studentMajor?: string;
   jobMajorRequirements?: string;
+  renounceReason?: string;
+  renouncedAt?: string;
+  reportTime?: string;
 }
+
+export type AgreementStatus =
+  | 'PENDING'
+  | 'STAMPED'
+  | 'ACTIVE'
+  | 'CHANGING'
+  | 'BREACHED'
+  | 'COMPLETED';
 
 export interface Agreement {
   id: number;
   applicationId: number;
-  status: 'PENDING' | 'STAMPED' | 'ACTIVE' | 'CHANGING' | 'BREACHED' | 'COMPLETED';
+  status: AgreementStatus;
   generatedAt: string;
   stampedAt: string;
   changeReason: string;
@@ -66,6 +88,11 @@ export interface Agreement {
   studentName?: string;
   jobTitle?: string;
   enterpriseName?: string;
+  location?: string;
+  salaryRange?: string;
+  mentorName?: string;
+  reportTime?: string;
+  currentVersion?: number;
 }
 
 export interface Review {
@@ -139,3 +166,80 @@ export interface DashboardData {
 }
 
 export type UserRole = 'employment_office' | 'student' | 'enterprise' | 'counselor';
+
+export interface DuplicateSigningBlockDTO {
+  blocked: boolean;
+  message: string;
+  riskWarning: string;
+  employmentOfficeRequirement: string;
+  existingAgreement?: Agreement;
+  existingEnterpriseName?: string;
+  existingJobTitle?: string;
+  existingStudentName?: string;
+}
+
+export type ChangeRequestStatus =
+  | 'PENDING'
+  | 'ENTERPRISE_CONFIRMED'
+  | 'STUDENT_CONFIRMED'
+  | 'COUNSELOR_CONFIRMED'
+  | 'COMPLETED'
+  | 'REJECTED';
+
+export interface AgreementChangeRequest {
+  id: number;
+  agreementId: number;
+  status: ChangeRequestStatus;
+
+  originalLocation: string;
+  newLocation: string;
+  originalSalaryRange: string;
+  newSalaryRange: string;
+  originalMentorName: string;
+  newMentorName: string;
+  originalReportTime: string;
+  newReportTime: string;
+
+  changeReason: string;
+  initiatedBy: number;
+  initiatedAt: string;
+
+  enterpriseConfirmed: boolean;
+  enterpriseConfirmedAt?: string;
+  enterpriseComment?: string;
+
+  studentConfirmed: boolean;
+  studentConfirmedAt?: string;
+  studentComment?: string;
+
+  counselorConfirmed: boolean;
+  counselorId?: number;
+  counselorConfirmedAt?: string;
+  counselorComment?: string;
+
+  employmentOfficeConfirmed: boolean;
+  employmentOfficeConfirmedAt?: string;
+  employmentOfficeComment?: string;
+
+  completedAt?: string;
+  rejectionReason?: string;
+
+  studentName?: string;
+  jobTitle?: string;
+  enterpriseName?: string;
+  initiatedByName?: string;
+}
+
+export interface AgreementVersion {
+  id: number;
+  agreementId: number;
+  versionNumber: number;
+  location: string;
+  salaryRange: string;
+  mentorName: string;
+  reportTime: string;
+  changeDescription: string;
+  createdBy: number;
+  createdAt: string;
+  createdByName?: string;
+}

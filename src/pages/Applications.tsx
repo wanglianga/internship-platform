@@ -1,10 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getApplications, interviewApplication, hireApplication, rejectApplication, createAgreement, getCounselors } from '../services/api';
+import {
+  getApplications,
+  interviewApplication,
+  hireApplication,
+  hireApplicationWithRenounce,
+  rejectApplication,
+  createAgreement,
+  getCounselors,
+  checkDuplicateSigning,
+} from '../services/api';
 import { useAppStore } from '../stores/appStore';
 import StatusBadge from '../components/StatusBadge';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import type { Application } from '../types';
+import type { Application, DuplicateSigningBlockDTO } from '../types';
 
 const statusTabs = [
   { key: '', label: '全部' },
@@ -16,11 +25,12 @@ const statusTabs = [
   { key: 'AGREEMENT_PENDING', label: '协议中' },
   { key: 'ACTIVE', label: '实习中' },
   { key: 'COMPLETED', label: '已完成' },
+  { key: 'RENOUNCED', label: '已放弃' },
 ];
 
 const steps = ['已投递', '面试', '已录用', '审核', '协议', '报到'];
 const stepStatusMap: Record<string, number> = {
-  APPLIED: 0, INTERVIEWING: 1, HIRED: 2, DEPARTMENT_REVIEW: 3, AGREEMENT_PENDING: 4, ACTIVE: 5, COMPLETED: 5, REJECTED: -1,
+  APPLIED: 0, INTERVIEWING: 1, HIRED: 2, DEPARTMENT_REVIEW: 3, AGREEMENT_PENDING: 4, ACTIVE: 5, COMPLETED: 5, REJECTED: -1, RENOUNCED: -1,
 };
 
 export default function Applications() {
@@ -31,6 +41,11 @@ export default function Applications() {
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [showInterview, setShowInterview] = useState(false);
   const [interviewForm, setInterviewForm] = useState({ interviewTime: '', interviewLocation: '', interviewMethod: '' });
+
+  const [showDuplicateBlock, setShowDuplicateBlock] = useState(false);
+  const [duplicateBlockInfo, setDuplicateBlockInfo] = useState<DuplicateSigningBlockDTO | null>(null);
+  const [renounceReason, setRenounceReason] = useState('');
+  const [hireLoading, setHireLoading] = useState(false);
 
   const fetchApps = useCallback(() => {
     setLoading(true);
@@ -50,11 +65,54 @@ export default function Applications() {
   };
 
   const handleHire = async (id: number) => {
+    setHireLoading(true);
     try {
+      const app = applications.find(a => a.id === id);
+      if (app) {
+        const blockInfo = await checkDuplicateSigning(app.studentId, app.jobId);
+        if (blockInfo.blocked) {
+          setDuplicateBlockInfo(blockInfo);
+          setShowDuplicateBlock(true);
+          setSelectedApp(app);
+          return;
+        }
+      }
       await hireApplication(id);
       fetchApps();
       setSelectedApp(null);
-    } catch { /* */ }
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        setDuplicateBlockInfo(err.response.data as DuplicateSigningBlockDTO);
+        setShowDuplicateBlock(true);
+      }
+    } finally {
+      setHireLoading(false);
+    }
+  };
+
+  const handleHireWithRenounce = async () => {
+    if (!selectedApp || !duplicateBlockInfo?.existingAgreement) return;
+    if (!renounceReason.trim() || renounceReason.trim().length < 10) {
+      alert('请详细填写放弃原因（至少10个字符）');
+      return;
+    }
+    setHireLoading(true);
+    try {
+      const renounceAppId = duplicateBlockInfo.existingAgreement.applicationId;
+      await hireApplicationWithRenounce(selectedApp.id, {
+        renounceApplicationId: renounceAppId,
+        renounceReason: renounceReason.trim(),
+      });
+      setShowDuplicateBlock(false);
+      setDuplicateBlockInfo(null);
+      setRenounceReason('');
+      fetchApps();
+      setSelectedApp(null);
+    } catch (err: any) {
+      alert(err?.response?.data?.error || '操作失败，请重试');
+    } finally {
+      setHireLoading(false);
+    }
   };
 
   const handleGenerateAgreement = async () => {
@@ -107,7 +165,7 @@ export default function Applications() {
         <DataTable columns={columns} data={applications} onRowClick={setSelectedApp} />
       )}
 
-      <Modal isOpen={!!selectedApp} onClose={() => setSelectedApp(null)} title="申请详情" width="max-w-xl">
+      <Modal isOpen={!!selectedApp && !showDuplicateBlock} onClose={() => setSelectedApp(null)} title="申请详情" width="max-w-xl">
         {selectedApp && (
           <div className="space-y-4">
             <div className="flex items-center gap-4">
@@ -128,6 +186,9 @@ export default function Applications() {
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><span className="text-slate-400">专业:</span> {selectedApp.studentMajor || '-'}</div>
               <div><span className="text-slate-400">状态:</span> <StatusBadge status={selectedApp.status} type="application" /></div>
+              {selectedApp.renounceReason && (
+                <div className="col-span-2"><span className="text-slate-400">放弃原因:</span> {selectedApp.renounceReason}</div>
+              )}
             </div>
             <div className="flex justify-end gap-2 pt-2">
               {currentRole === 'enterprise' && selectedApp.status === 'APPLIED' && (
@@ -135,7 +196,9 @@ export default function Applications() {
               )}
               {currentRole === 'enterprise' && selectedApp.status === 'INTERVIEWING' && (
                 <>
-                  <button onClick={() => handleHire(selectedApp.id)} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">确认录用</button>
+                  <button onClick={() => handleHire(selectedApp.id)} disabled={hireLoading} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50">
+                    {hireLoading ? '处理中...' : '确认录用'}
+                  </button>
                   <button onClick={() => handleReject(selectedApp.id)} className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600">拒绝</button>
                 </>
               )}
@@ -143,6 +206,70 @@ export default function Applications() {
                 <button onClick={handleGenerateAgreement} className="px-4 py-2 bg-teal-700 text-white rounded-lg text-sm hover:bg-teal-800">生成三方协议</button>
               )}
               <button onClick={() => setSelectedApp(null)} className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600">关闭</button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal isOpen={showDuplicateBlock} onClose={() => { setShowDuplicateBlock(false); setRenounceReason(''); }} title="⚠️ 重复签约拦截警告" width="max-w-2xl">
+        {duplicateBlockInfo && (
+          <div className="space-y-4">
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="text-red-700 font-semibold mb-2">{duplicateBlockInfo.message}</div>
+            </div>
+
+            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="text-orange-800 font-medium whitespace-pre-wrap">{duplicateBlockInfo.riskWarning}</div>
+            </div>
+
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="text-blue-800 font-medium whitespace-pre-wrap">{duplicateBlockInfo.employmentOfficeRequirement}</div>
+            </div>
+
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+              <div className="text-sm font-semibold text-slate-700 mb-2">📋 现有签约信息</div>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div><span className="text-slate-500">学生姓名：</span>{duplicateBlockInfo.existingStudentName}</div>
+                <div><span className="text-slate-500">签约企业：</span>{duplicateBlockInfo.existingEnterpriseName}</div>
+                <div><span className="text-slate-500">签约岗位：</span>{duplicateBlockInfo.existingJobTitle}</div>
+                <div>
+                  <span className="text-slate-500">协议状态：</span>
+                  {duplicateBlockInfo.existingAgreement && (
+                    <StatusBadge status={duplicateBlockInfo.existingAgreement.status} type="agreement" />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-slate-700 mb-2 block">
+                ✍️ 填写放弃原有签约的详细原因 <span className="text-red-500">*（至少10个字符）</span>
+              </label>
+              <textarea
+                value={renounceReason}
+                onChange={(e) => setRenounceReason(e.target.value)}
+                placeholder="请说明放弃原企业签约的具体原因，例如：新企业岗位更符合个人职业发展规划、薪资待遇更优、家庭原因需要更换实习城市等..."
+                rows={4}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-teal-500"
+              />
+              <div className="text-xs text-slate-500 mt-1">
+                当前字数：{renounceReason.trim().length} / 最少10字
+              </div>
+            </div>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+              ⚠️ 重要提示：提交后将自动解除与原企业的三方协议，并被记为一次学生违约，该记录将影响学生诚信档案。
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={() => { setShowDuplicateBlock(false); setRenounceReason(''); }} className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600">取消</button>
+              <button
+                onClick={handleHireWithRenounce}
+                disabled={hireLoading || renounceReason.trim().length < 10}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {hireLoading ? '处理中...' : '确认放弃并接受新录用'}
+              </button>
             </div>
           </div>
         )}

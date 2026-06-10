@@ -13,28 +13,21 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "agreements")
-public class Agreement {
+@Table(name = "agreement_versions")
+public class AgreementVersion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long applicationId;
-    private String status;
-    private LocalDateTime generatedAt;
-    private LocalDateTime stampedAt;
-    private String changeReason;
-    private String breachReason;
-    private String breachParty;
+    private Long agreementId;
+    private Integer versionNumber;
     private String location;
     private String salaryRange;
     private String mentorName;
     private String reportTime;
-    private Integer currentVersion;
+    private String changeDescription;
+    private Long createdBy;
+    private LocalDateTime createdAt;
 
     @Transient
-    private String studentName;
-    @Transient
-    private String jobTitle;
-    @Transient
-    private String enterpriseName;
+    private String createdByName;
 }

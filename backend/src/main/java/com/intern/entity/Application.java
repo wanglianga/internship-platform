@@ -32,6 +32,9 @@ public class Application {
     private String jobResponsibilitiesSnapshot;
     private Long originalJobId;
     private String withdrawalReason;
+    private String renounceReason;
+    private LocalDateTime renouncedAt;
+    private String reportTime;
 
     @Transient
     private String studentName;

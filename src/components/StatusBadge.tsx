@@ -19,6 +19,7 @@ const applicationStatusMap: Record<string, { label: string; color: string }> = {
   AGREEMENT_PENDING: { label: '协议中', color: 'bg-yellow-100 text-yellow-700' },
   ACTIVE: { label: '实习中', color: 'bg-teal-100 text-teal-700' },
   COMPLETED: { label: '已完成', color: 'bg-slate-100 text-slate-600' },
+  RENOUNCED: { label: '已放弃', color: 'bg-stone-100 text-stone-600' },
 };
 
 const agreementStatusMap: Record<string, { label: string; color: string }> = {
