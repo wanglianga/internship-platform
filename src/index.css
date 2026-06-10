@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+
+  ::selection {
+    @apply bg-teal-200 text-teal-900;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    @apply ring-2 ring-teal-500/20 border-teal-500;
+  }
+}
+
+@layer utilities {
+  @keyframes pulse-risk {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  .animate-pulse-risk {
+    animation: pulse-risk 2s ease-in-out infinite;
+  }
+
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in-up {
+    animation: fade-in-up 0.4s ease-out forwards;
+  }
+
+  @keyframes slide-in-right {
+    from { opacity: 0; transform: translateX(16px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .animate-slide-in-right {
+    animation: slide-in-right 0.35s ease-out forwards;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  .font-dm {
+    font-family: 'DM Sans', 'Noto Sans SC', sans-serif;
+  }
+
+  .glass-card {
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+
+  .gradient-teal {
+    background: linear-gradient(135deg, #0F766E 0%, #14B8A6 100%);
+  }
+
+  .gradient-warm {
+    background: linear-gradient(135deg, #F97316 0%, #FB923C 100%);
+  }
+
+  .gradient-danger {
+    background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+  }
+
+  .stat-card-gradient-1 {
+    background: linear-gradient(135deg, #0F766E 0%, #14B8A6 50%, #5EEAD4 100%);
+  }
+  .stat-card-gradient-2 {
+    background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 50%, #93C5FD 100%);
+  }
+  .stat-card-gradient-3 {
+    background: linear-gradient(135deg, #9333EA 0%, #A855F7 50%, #D8B4FE 100%);
+  }
+  .stat-card-gradient-4 {
+    background: linear-gradient(135deg, #EA580C 0%, #F97316 50%, #FDBA74 100%);
+  }
+}
