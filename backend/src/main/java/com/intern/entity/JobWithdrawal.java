@@ -13,26 +13,20 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "jobs")
-public class Job {
+@Table(name = "job_withdrawals")
+public class JobWithdrawal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Long jobId;
     private Long enterpriseId;
-    private String title;
-    private String description;
-    private String location;
-    private String salaryRange;
-    private String majorRequirements;
-    private Integer headcount;
+    private String reason;
     private String status;
-    private String mentorName;
-    private LocalDateTime createdAt;
-    private String responsibilities;
-    private Integer requiredCredits;
-    private Integer internshipMonths;
-    private String withdrawalReason;
+    private LocalDateTime withdrawnAt;
+    private String remark;
 
+    @Transient
+    private String jobTitle;
     @Transient
     private String enterpriseName;
 }

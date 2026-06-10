@@ -19,6 +19,8 @@ public class ApplicationService {
     private final JobRepository jobRepository;
     private final AgreementRepository agreementRepository;
     private final RiskAlertRepository riskAlertRepository;
+    private final com.intern.repository.TrainingProgramMatchRepository trainingProgramMatchRepository;
+    private final com.intern.service.TrainingProgramService trainingProgramService;
 
     public List<Application> findAll() {
         return applicationRepository.findAll();
@@ -104,7 +106,18 @@ public class ApplicationService {
                 .orElseThrow(() -> new RuntimeException("Application not found: " + id));
         app.setStatus("HIRED");
         app.setHiredAt(LocalDateTime.now());
-        return applicationRepository.save(app);
+
+        Job job = jobRepository.findById(app.getJobId()).orElse(null);
+        if (job != null) {
+            app.setJobResponsibilitiesSnapshot(job.getDescription());
+            if (job.getInternshipMonths() != null) {
+                app.setInternshipMonths(job.getInternshipMonths());
+            }
+        }
+
+        Application savedApp = applicationRepository.save(app);
+        trainingProgramService.checkMatch(id);
+        return savedApp;
     }
 
     @Transactional

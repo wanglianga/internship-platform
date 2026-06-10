@@ -27,6 +27,11 @@ public class Application {
     private LocalDateTime appliedAt;
     private LocalDateTime interviewedAt;
     private LocalDateTime hiredAt;
+    private Integer internshipMonths;
+    private Integer earnedCredits;
+    private String jobResponsibilitiesSnapshot;
+    private Long originalJobId;
+    private String withdrawalReason;
 
     @Transient
     private String studentName;

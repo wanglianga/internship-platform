@@ -21,6 +21,9 @@ public class DataInitializer implements CommandLineRunner {
     private final ReviewRepository reviewRepository;
     private final CounselorRepository counselorRepository;
     private final RiskAlertRepository riskAlertRepository;
+    private final com.intern.repository.TrainingProgramRepository trainingProgramRepository;
+    private final com.intern.repository.TrainingProgramMatchRepository trainingProgramMatchRepository;
+    private final com.intern.repository.JobWithdrawalRepository jobWithdrawalRepository;
 
     @Override
     public void run(String... args) {
@@ -32,6 +35,8 @@ public class DataInitializer implements CommandLineRunner {
         initAgreements();
         initReviews();
         initRiskAlerts();
+        initTrainingPrograms();
+        initTrainingProgramMatches();
     }
 
     private void initEnterprises() {
@@ -216,6 +221,98 @@ public class DataInitializer implements CommandLineRunner {
                         .relatedStudentId(5L).relatedJobId(3L)
                         .resolution("经核实，信息管理专业也符合岗位要求")
                         .detectedAt(LocalDateTime.now().minusDays(6)).resolvedAt(LocalDateTime.now().minusDays(5)).build()
+        ));
+    }
+
+    private void initTrainingPrograms() {
+        trainingProgramRepository.saveAll(List.of(
+                com.intern.entity.TrainingProgram.builder()
+                        .major("计算机科学与技术")
+                        .requiredJobResponsibilities("开发,编程,系统,算法")
+                        .requiredCredits(16)
+                        .requiredInternshipMonths(6)
+                        .department("计算机学院")
+                        .createdAt(LocalDateTime.now().minusDays(30))
+                        .build(),
+                com.intern.entity.TrainingProgram.builder()
+                        .major("软件工程")
+                        .requiredJobResponsibilities("开发,编程,软件,测试,前端,后端")
+                        .requiredCredits(16)
+                        .requiredInternshipMonths(6)
+                        .department("计算机学院")
+                        .createdAt(LocalDateTime.now().minusDays(30))
+                        .build(),
+                com.intern.entity.TrainingProgram.builder()
+                        .major("数据科学")
+                        .requiredJobResponsibilities("数据,分析,机器学习,算法,统计")
+                        .requiredCredits(18)
+                        .requiredInternshipMonths(6)
+                        .department("数学学院")
+                        .createdAt(LocalDateTime.now().minusDays(30))
+                        .build(),
+                com.intern.entity.TrainingProgram.builder()
+                        .major("电子信息工程")
+                        .requiredJobResponsibilities("硬件,嵌入式,通信,电子,电路")
+                        .requiredCredits(16)
+                        .requiredInternshipMonths(6)
+                        .department("信息工程学院")
+                        .createdAt(LocalDateTime.now().minusDays(30))
+                        .build(),
+                com.intern.entity.TrainingProgram.builder()
+                        .major("信息管理")
+                        .requiredJobResponsibilities("管理,信息系统,产品,数据,项目")
+                        .requiredCredits(14)
+                        .requiredInternshipMonths(4)
+                        .department("信息工程学院")
+                        .createdAt(LocalDateTime.now().minusDays(30))
+                        .build(),
+                com.intern.entity.TrainingProgram.builder()
+                        .major("数学")
+                        .requiredJobResponsibilities("算法,数据,分析,统计,建模")
+                        .requiredCredits(18)
+                        .requiredInternshipMonths(6)
+                        .department("数学学院")
+                        .createdAt(LocalDateTime.now().minusDays(30))
+                        .build()
+        ));
+    }
+
+    private void initTrainingProgramMatches() {
+        trainingProgramMatchRepository.saveAll(List.of(
+                com.intern.entity.TrainingProgramMatch.builder()
+                        .applicationId(3L)
+                        .trainingProgramId(3L)
+                        .majorMatched(true)
+                        .responsibilitiesMatched(true)
+                        .creditsMatched(true)
+                        .durationMatched(true)
+                        .overallStatus("MATCHED")
+                        .counselorAction("NONE")
+                        .matchedAt(LocalDateTime.now().minusDays(4))
+                        .build(),
+                com.intern.entity.TrainingProgramMatch.builder()
+                        .applicationId(5L)
+                        .trainingProgramId(5L)
+                        .majorMatched(true)
+                        .responsibilitiesMatched(false)
+                        .creditsMatched(true)
+                        .durationMatched(true)
+                        .overallStatus("UNMATCHED")
+                        .counselorAction("PENDING")
+                        .counselorComment("岗位职责不完全匹配，需补充说明")
+                        .matchedAt(LocalDateTime.now().minusDays(2))
+                        .build(),
+                com.intern.entity.TrainingProgramMatch.builder()
+                        .applicationId(6L)
+                        .trainingProgramId(6L)
+                        .majorMatched(true)
+                        .responsibilitiesMatched(true)
+                        .creditsMatched(true)
+                        .durationMatched(true)
+                        .overallStatus("MATCHED")
+                        .counselorAction("NONE")
+                        .matchedAt(LocalDateTime.now().minusDays(3))
+                        .build()
         ));
     }
 }
