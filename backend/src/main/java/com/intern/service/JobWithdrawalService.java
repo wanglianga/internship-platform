@@ -64,10 +64,10 @@ public class JobWithdrawalService {
         List<Application> applications = applicationRepository.findByJobId(jobId);
         for (Application app : applications) {
             String originalStatus = app.getStatus();
-            if ("APPLIED".equals(originalStatus) || "INTERVIEWING".equals(originalStatus)) {
+            if ("PENDING_SCREENING".equals(originalStatus) || "APPLIED".equals(originalStatus) || "INTERVIEWING".equals(originalStatus)) {
                 app.setStatus("JOB_WITHDRAWN");
                 applicationRepository.save(app);
-            } else if ("HIRED".equals(originalStatus) || "DEPARTMENT_REVIEW".equals(originalStatus)
+            } else if ("PENDING_HIRE".equals(originalStatus) || "HIRED".equals(originalStatus) || "DEPARTMENT_REVIEW".equals(originalStatus)
                     || "AGREEMENT_PENDING".equals(originalStatus)) {
                 app.setStatus("JOB_WITHDRAWN");
                 applicationRepository.save(app);

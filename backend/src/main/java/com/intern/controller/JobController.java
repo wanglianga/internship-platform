@@ -24,7 +24,14 @@ public class JobController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String location,
             @RequestParam(required = false) String majorKeyword,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long recommendedFor) {
+        if (recommendedFor != null) {
+            List<Job> jobs = jobService.findRecommended(recommendedFor);
+            jobs.forEach(j -> enterpriseRepository.findById(j.getEnterpriseId())
+                    .ifPresent(e -> j.setEnterpriseName(e.getName())));
+            return ResponseEntity.ok(jobs);
+        }
         List<Job> jobs = jobService.findAll();
         if (status != null) {
             jobs = jobs.stream().filter(j -> status.equals(j.getStatus())).collect(Collectors.toList());

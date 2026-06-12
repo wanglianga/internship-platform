@@ -42,7 +42,7 @@ public class DashboardService {
                         .id(app.getId())
                         .title(studentRepository.findById(app.getStudentId()).map(s -> s.getName()).orElse("学生ID:" + app.getStudentId()) + " 申请了 " + jobRepository.findById(app.getJobId()).map(j -> j.getTitle()).orElse("岗位ID:" + app.getJobId()))
                         .type("APPLICATION")
-                        .urgency("APPLIED".equals(app.getStatus()) ? "HIGH" : "MEDIUM")
+                        .urgency("PENDING_SCREENING".equals(app.getStatus()) || "APPLIED".equals(app.getStatus()) ? "HIGH" : "MEDIUM")
                         .build())
                 .collect(Collectors.toList());
 
@@ -92,8 +92,10 @@ public class DashboardService {
 
     private String getStatusDescription(String status) {
         switch (status) {
+            case "PENDING_SCREENING": return "提交了实习申请（待筛选）";
             case "APPLIED": return "提交了实习申请";
             case "INTERVIEWING": return "进入面试阶段";
+            case "PENDING_HIRE": return "待录用";
             case "HIRED": return "已录用";
             case "REJECTED": return "申请被拒绝";
             case "DEPARTMENT_REVIEW": return "等待院系审核";

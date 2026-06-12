@@ -138,7 +138,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initApplications() {
         applicationRepository.saveAll(List.of(
-                Application.builder().studentId(1L).jobId(1L).status("APPLIED")
+                Application.builder().studentId(1L).jobId(1L).status("PENDING_SCREENING")
                         .appliedAt(LocalDateTime.now().minusDays(5)).build(),
                 Application.builder().studentId(2L).jobId(2L).status("INTERVIEWING")
                         .interviewTime("2026-06-15 14:00").interviewLocation("腾讯大厦B座3楼").interviewMethod("现场面试")
@@ -155,11 +155,13 @@ public class DataInitializer implements CommandLineRunner {
                         .appliedAt(LocalDateTime.now().minusDays(20)).interviewedAt(LocalDateTime.now().minusDays(17)).hiredAt(LocalDateTime.now().minusDays(14)).build(),
                 Application.builder().studentId(8L).jobId(2L).status("COMPLETED")
                         .appliedAt(LocalDateTime.now().minusDays(30)).interviewedAt(LocalDateTime.now().minusDays(27)).hiredAt(LocalDateTime.now().minusDays(24)).build(),
-                Application.builder().studentId(1L).jobId(6L).status("APPLIED")
+                Application.builder().studentId(1L).jobId(6L).status("PENDING_SCREENING")
                         .appliedAt(LocalDateTime.now().minusDays(2)).build(),
                 Application.builder().studentId(5L).jobId(3L).status("INTERVIEWING")
                         .interviewTime("2026-06-16 10:00").interviewLocation("线上面试").interviewMethod("视频面试")
-                        .appliedAt(LocalDateTime.now().minusDays(3)).build()
+                        .appliedAt(LocalDateTime.now().minusDays(3)).build(),
+                Application.builder().studentId(8L).jobId(1L).status("PENDING_HIRE")
+                        .appliedAt(LocalDateTime.now().minusDays(7)).interviewedAt(LocalDateTime.now().minusDays(4)).build()
         ));
     }
 

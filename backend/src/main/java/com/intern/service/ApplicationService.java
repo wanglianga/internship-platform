@@ -127,7 +127,8 @@ public class ApplicationService {
         Application application = Application.builder()
                 .studentId(studentId)
                 .jobId(jobId)
-                .status("APPLIED")
+                .status("PENDING_SCREENING")
+                .majorMatched(job.getMajorRequirements() != null && job.getMajorRequirements().contains(student.getMajor()))
                 .appliedAt(LocalDateTime.now())
                 .build();
         return applicationRepository.save(application);
@@ -281,6 +282,17 @@ public class ApplicationService {
         Application app = applicationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Application not found: " + id));
         app.setStatus("REJECTED");
+        return applicationRepository.save(app);
+    }
+
+    @Transactional
+    public Application pendingHire(Long id) {
+        Application app = applicationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Application not found: " + id));
+        if (!"INTERVIEWING".equals(app.getStatus())) {
+            throw new RuntimeException("只有面试中的申请才能标记为待录用");
+        }
+        app.setStatus("PENDING_HIRE");
         return applicationRepository.save(app);
     }
 }

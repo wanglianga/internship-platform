@@ -33,6 +33,9 @@ public class ApplicationController {
         jobRepository.findById(app.getJobId()).ifPresent(j -> {
             app.setJobTitle(j.getTitle());
             app.setJobMajorRequirements(j.getMajorRequirements());
+            if (app.getMajorMatched() == null && app.getStudentMajor() != null && j.getMajorRequirements() != null) {
+                app.setMajorMatched(j.getMajorRequirements().contains(app.getStudentMajor()));
+            }
         });
     }
 
@@ -139,5 +142,16 @@ public class ApplicationController {
         Application app = applicationService.reject(id);
         enrichApplication(app);
         return ResponseEntity.ok(app);
+    }
+
+    @PutMapping("/{id}/pending-hire")
+    public ResponseEntity<?> pendingHire(@PathVariable Long id) {
+        try {
+            Application app = applicationService.pendingHire(id);
+            enrichApplication(app);
+            return ResponseEntity.ok(app);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }

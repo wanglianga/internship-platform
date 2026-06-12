@@ -5,6 +5,7 @@ import {
   hireApplication,
   hireApplicationWithRenounce,
   rejectApplication,
+  pendingHireApplication,
   createAgreement,
   getCounselors,
   checkDuplicateSigning,
@@ -17,8 +18,9 @@ import type { Application, DuplicateSigningBlockDTO } from '../types';
 
 const statusTabs = [
   { key: '', label: '全部' },
-  { key: 'APPLIED', label: '已投递' },
-  { key: 'INTERVIEWING', label: '面试中' },
+  { key: 'PENDING_SCREENING', label: '待筛选' },
+  { key: 'INTERVIEWING', label: '待面试' },
+  { key: 'PENDING_HIRE', label: '待录用' },
   { key: 'HIRED', label: '已录用' },
   { key: 'REJECTED', label: '已拒绝' },
   { key: 'DEPARTMENT_REVIEW', label: '院系审核' },
@@ -28,9 +30,9 @@ const statusTabs = [
   { key: 'RENOUNCED', label: '已放弃' },
 ];
 
-const steps = ['已投递', '面试', '已录用', '审核', '协议', '报到'];
+const steps = ['待筛选', '待面试', '待录用', '已录用', '审核', '协议', '报到'];
 const stepStatusMap: Record<string, number> = {
-  APPLIED: 0, INTERVIEWING: 1, HIRED: 2, DEPARTMENT_REVIEW: 3, AGREEMENT_PENDING: 4, ACTIVE: 5, COMPLETED: 5, REJECTED: -1, RENOUNCED: -1,
+  PENDING_SCREENING: 0, APPLIED: 0, INTERVIEWING: 1, PENDING_HIRE: 2, HIRED: 3, DEPARTMENT_REVIEW: 4, AGREEMENT_PENDING: 5, ACTIVE: 6, COMPLETED: 6, REJECTED: -1, RENOUNCED: -1,
 };
 
 export default function Applications() {
@@ -62,6 +64,11 @@ export default function Applications() {
   const handleInterview = async () => {
     if (!selectedApp) return;
     try { await interviewApplication(selectedApp.id, interviewForm); setShowInterview(false); fetchApps(); setSelectedApp(null); } catch { /* */ }
+  };
+
+  const handlePendingHire = async () => {
+    if (!selectedApp) return;
+    try { await pendingHireApplication(selectedApp.id); fetchApps(); setSelectedApp(null); } catch { /* */ }
   };
 
   const handleHire = async (id: number) => {
@@ -185,22 +192,38 @@ export default function Applications() {
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><span className="text-slate-400">专业:</span> {selectedApp.studentMajor || '-'}</div>
+              <div>
+                <span className="text-slate-400">专业匹配:</span>{' '}
+                {selectedApp.majorMatched === false ? (
+                  <span className="text-amber-600 text-xs font-medium">不匹配</span>
+                ) : selectedApp.majorMatched === true ? (
+                  <span className="text-green-600 text-xs font-medium">匹配</span>
+                ) : (
+                  <span className="text-slate-400 text-xs">未知</span>
+                )}
+              </div>
               <div><span className="text-slate-400">状态:</span> <StatusBadge status={selectedApp.status} type="application" /></div>
               {selectedApp.renounceReason && (
                 <div className="col-span-2"><span className="text-slate-400">放弃原因:</span> {selectedApp.renounceReason}</div>
               )}
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              {currentRole === 'enterprise' && selectedApp.status === 'APPLIED' && (
+              {currentRole === 'enterprise' && selectedApp.status === 'PENDING_SCREENING' && (
                 <button onClick={() => setShowInterview(true)} className="px-4 py-2 bg-teal-700 text-white rounded-lg text-sm hover:bg-teal-800">安排面试</button>
+              )}
+              {currentRole === 'enterprise' && selectedApp.status === 'PENDING_SCREENING' && (
+                <button onClick={() => handleReject(selectedApp.id)} className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600">拒绝</button>
               )}
               {currentRole === 'enterprise' && selectedApp.status === 'INTERVIEWING' && (
                 <>
-                  <button onClick={() => handleHire(selectedApp.id)} disabled={hireLoading} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50">
-                    {hireLoading ? '处理中...' : '确认录用'}
-                  </button>
+                  <button onClick={handlePendingHire} className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm hover:bg-amber-700">标记待录用</button>
                   <button onClick={() => handleReject(selectedApp.id)} className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600">拒绝</button>
                 </>
+              )}
+              {currentRole === 'enterprise' && selectedApp.status === 'PENDING_HIRE' && (
+                <button onClick={() => handleHire(selectedApp.id)} disabled={hireLoading} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50">
+                  {hireLoading ? '处理中...' : '确认录用'}
+                </button>
               )}
               {currentRole === 'employment_office' && selectedApp.status === 'AGREEMENT_PENDING' && (
                 <button onClick={handleGenerateAgreement} className="px-4 py-2 bg-teal-700 text-white rounded-lg text-sm hover:bg-teal-800">生成三方协议</button>

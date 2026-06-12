@@ -35,6 +35,7 @@ export const getJob = (id: number) => api.get<Job>(`/jobs/${id}`).then((r) => r.
 export const createJob = (data: Partial<Job>) => api.post<Job>('/jobs', data).then((r) => r.data);
 export const updateJob = (id: number, data: Partial<Job>) => api.put<Job>(`/jobs/${id}`, data).then((r) => r.data);
 export const withdrawJob = (id: number) => api.put<Job>(`/jobs/${id}/withdraw`).then((r) => r.data);
+export const getRecommendedJobs = (studentId: number) => api.get<Job[]>('/jobs', { params: { recommendedFor: studentId } }).then((r) => r.data);
 
 export const getApplications = (params?: Record<string, string>) => api.get<Application[]>('/applications', { params }).then((r) => r.data);
 export const createApplication = (data: Partial<Application>) => api.post<Application>('/applications', data).then((r) => r.data);
@@ -47,6 +48,7 @@ export const hireApplicationWithRenounce = (
   data: { renounceApplicationId?: number; renounceReason: string },
 ) => api.put<Application>(`/applications/${id}/hire-with-renounce`, data).then((r) => r.data);
 export const rejectApplication = (id: number) => api.put<Application>(`/applications/${id}/reject`).then((r) => r.data);
+export const pendingHireApplication = (id: number) => api.put<Application>(`/applications/${id}/pending-hire`).then((r) => r.data);
 export const renounceApplication = (id: number, data: { renounceReason: string }) =>
   api.put<Application>(`/applications/${id}/renounce`, data).then((r) => r.data);
 export const checkDuplicateSigning = (studentId: number, jobId: number) =>

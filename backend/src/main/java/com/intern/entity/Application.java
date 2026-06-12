@@ -44,4 +44,6 @@ public class Application {
     private String studentMajor;
     @Transient
     private String jobMajorRequirements;
+    @Transient
+    private Boolean majorMatched;
 }

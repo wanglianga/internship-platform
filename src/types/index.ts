@@ -35,11 +35,16 @@ export interface Job {
   mentorName: string;
   createdAt: string;
   enterpriseName?: string;
+  majorMatched?: boolean;
+  cityMatched?: boolean;
+  matchScore?: number;
 }
 
 export type ApplicationStatus =
+  | 'PENDING_SCREENING'
   | 'APPLIED'
   | 'INTERVIEWING'
+  | 'PENDING_HIRE'
   | 'HIRED'
   | 'REJECTED'
   | 'DEPARTMENT_REVIEW'
@@ -66,6 +71,7 @@ export interface Application {
   renounceReason?: string;
   renouncedAt?: string;
   reportTime?: string;
+  majorMatched?: boolean;
 }
 
 export type AgreementStatus =

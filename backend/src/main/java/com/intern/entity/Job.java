@@ -35,4 +35,13 @@ public class Job {
 
     @Transient
     private String enterpriseName;
+
+    @Transient
+    private Boolean majorMatched;
+
+    @Transient
+    private Boolean cityMatched;
+
+    @Transient
+    private Integer matchScore;
 }

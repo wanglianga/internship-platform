@@ -144,6 +144,28 @@ export default function Students() {
 
 function StudentProfile({ student, loading }: { student: Student | null; loading: boolean }) {
   const [activeTab, setActiveTab] = useState('basic');
+  const [editMode, setEditMode] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<Student>>({});
+  const [saving, setSaving] = useState(false);
+
+  const startEdit = () => {
+    setEditForm(student || {});
+    setEditMode(true);
+  };
+
+  const handleSave = async () => {
+    if (!student) return;
+    setSaving(true);
+    try {
+      await updateStudent(student.id, editForm);
+      setEditMode(false);
+      window.location.reload();
+    } catch {
+      /* */
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) return <div className="text-center py-12 text-slate-400">加载中...</div>;
   if (!student) return <div className="text-center py-12 text-slate-400">暂无学生信息</div>;
@@ -151,40 +173,135 @@ function StudentProfile({ student, loading }: { student: Student | null; loading
   return (
     <div className="max-w-3xl mx-auto space-y-4">
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 rounded-full bg-teal-50 flex items-center justify-center">
-            <UserCircle size={28} className="text-teal-600" />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-teal-50 flex items-center justify-center">
+              <UserCircle size={28} className="text-teal-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800">{student.name}</h3>
+              <p className="text-sm text-slate-500">{student.major} · {student.grade}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-slate-800">{student.name}</h3>
-            <p className="text-sm text-slate-500">{student.major} · {student.grade}</p>
-          </div>
+          {!editMode && (
+            <button onClick={startEdit} className="px-4 py-2 border border-teal-700 text-teal-700 rounded-lg text-sm hover:bg-teal-50 transition-colors">
+              编辑档案
+            </button>
+          )}
         </div>
         <div className="flex gap-2 border-b border-slate-200 pb-2">
           {profileTabs.map((tab) => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`flex items-center gap-1 px-3 py-1.5 rounded-t-lg text-sm ${activeTab === tab.key ? 'text-teal-700 border-b-2 border-teal-700 font-medium' : 'text-slate-500'}`}>
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`flex items-center gap-1 px-3 py-1.5 rounded-t-lg text-sm ${activeTab === tab.key ? 'text-teal-700 border-b-2 border-teal-700 font-medium' : 'text-slate-500 hover:text-slate-700'}`}>
               <tab.icon size={14} /> {tab.label}
             </button>
           ))}
         </div>
         <div className="pt-4">
           {activeTab === 'basic' && (
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><span className="text-slate-400">学号:</span> {student.studentNo}</div>
-              <div><span className="text-slate-400">电话:</span> {student.phone}</div>
-              <div><span className="text-slate-400">邮箱:</span> {student.email}</div>
-            </div>
+            editMode ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-slate-500">姓名</label>
+                    <input value={editForm.name || ''} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-teal-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">学号</label>
+                    <input value={editForm.studentNo || ''} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" readOnly />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">专业</label>
+                    <input value={editForm.major || ''} onChange={(e) => setEditForm({ ...editForm, major: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-teal-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">年级</label>
+                    <input value={editForm.grade || ''} onChange={(e) => setEditForm({ ...editForm, grade: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-teal-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">电话</label>
+                    <input value={editForm.phone || ''} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-teal-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">邮箱</label>
+                    <input value={editForm.email || ''} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-teal-500" />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><span className="text-slate-400">学号:</span> {student.studentNo}</div>
+                <div><span className="text-slate-400">电话:</span> {student.phone}</div>
+                <div><span className="text-slate-400">邮箱:</span> {student.email}</div>
+              </div>
+            )
           )}
-          {activeTab === 'resume' && <div className="text-sm text-slate-600 whitespace-pre-wrap">{student.resume || '暂无简历'}</div>}
-          {activeTab === 'courses' && <div className="text-sm text-slate-600 whitespace-pre-wrap">{student.courses || '暂无课程安排'}</div>}
+          {activeTab === 'resume' && (
+            editMode ? (
+              <div className="space-y-2">
+                <label className="text-xs text-slate-500">个人简历</label>
+                <textarea
+                  value={editForm.resume || ''}
+                  onChange={(e) => setEditForm({ ...editForm, resume: e.target.value })}
+                  rows={8}
+                  placeholder="请输入您的个人简历，包括技能、经验、项目经历等..."
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-teal-500"
+                />
+              </div>
+            ) : (
+              <div className="text-sm text-slate-600 whitespace-pre-wrap">{student.resume || '暂无简历，请点击"编辑档案"添加您的简历'}</div>
+            )
+          )}
+          {activeTab === 'courses' && (
+            editMode ? (
+              <div className="space-y-2">
+                <label className="text-xs text-slate-500">课程安排</label>
+                <textarea
+                  value={editForm.courses || ''}
+                  onChange={(e) => setEditForm({ ...editForm, courses: e.target.value })}
+                  rows={6}
+                  placeholder="请输入已修或在读的主要课程..."
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-teal-500"
+                />
+              </div>
+            ) : (
+              <div className="text-sm text-slate-600 whitespace-pre-wrap">{student.courses || '暂无课程安排'}</div>
+            )
+          )}
           {activeTab === 'cities' && (
-            <div className="flex flex-wrap gap-2">
-              {student.preferredCities ? student.preferredCities.split(/[,，]/).filter(Boolean).map((city, i) => (
-                <span key={i} className="px-3 py-1 bg-teal-50 text-teal-700 rounded-lg text-sm">{city.trim()}</span>
-              )) : <span className="text-sm text-slate-400">暂无意向城市</span>}
-            </div>
+            editMode ? (
+              <div className="space-y-2">
+                <label className="text-xs text-slate-500">意向城市（多个城市用逗号分隔）</label>
+                <input
+                  value={editForm.preferredCities || ''}
+                  onChange={(e) => setEditForm({ ...editForm, preferredCities: e.target.value })}
+                  placeholder="例如：杭州,深圳,上海"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-teal-500"
+                />
+                <p className="text-xs text-slate-400">系统将根据您的意向城市智能推荐岗位</p>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {student.preferredCities ? student.preferredCities.split(/[,，]/).filter(Boolean).map((city, i) => (
+                  <span key={i} className="px-3 py-1 bg-teal-50 text-teal-700 rounded-lg text-sm">{city.trim()}</span>
+                )) : <span className="text-sm text-slate-400">暂无意向城市，请点击"编辑档案"添加</span>}
+              </div>
+            )
           )}
         </div>
+        {editMode && (
+          <div className="flex justify-end gap-2 pt-4 mt-4 border-t border-slate-100">
+            <button onClick={() => setEditMode(false)} className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+              取消
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-4 py-2 bg-teal-700 text-white rounded-lg text-sm hover:bg-teal-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? '保存中...' : '保存修改'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

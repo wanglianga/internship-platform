@@ -11,8 +11,10 @@ const jobStatusMap: Record<string, { label: string; color: string }> = {
 };
 
 const applicationStatusMap: Record<string, { label: string; color: string }> = {
+  PENDING_SCREENING: { label: '待筛选', color: 'bg-cyan-100 text-cyan-700' },
   APPLIED: { label: '已投递', color: 'bg-blue-100 text-blue-700' },
-  INTERVIEWING: { label: '面试中', color: 'bg-orange-100 text-orange-700' },
+  INTERVIEWING: { label: '待面试', color: 'bg-orange-100 text-orange-700' },
+  PENDING_HIRE: { label: '待录用', color: 'bg-amber-100 text-amber-700' },
   HIRED: { label: '已录用', color: 'bg-green-100 text-green-700' },
   REJECTED: { label: '已拒绝', color: 'bg-red-100 text-red-600' },
   DEPARTMENT_REVIEW: { label: '院系审核', color: 'bg-purple-100 text-purple-700' },
